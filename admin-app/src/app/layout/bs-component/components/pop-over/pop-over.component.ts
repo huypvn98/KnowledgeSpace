@@ -6,7 +6,10 @@ import { Component, OnInit } from '@angular/core';
     styleUrls: ['./pop-over.component.scss']
 })
 export class PopOverComponent implements OnInit {
-    constructor() {}
 
-    ngOnInit() {}
+    constructor() { }
+
+    ngOnInit() {
+    }
+
 }

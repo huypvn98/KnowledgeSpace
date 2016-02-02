@@ -4,17 +4,12 @@
             <div class="card-header">Collapse</div>
             <div class="card-body">
                 <p>
-                    <button
-                        (click)="isCollapsed = !isCollapsed"
-                        [attr.aria-expanded]="!isCollapsed"
-                        aria-controls="collapseExample"
-                        class="btn btn-outline-primary"
-                        type="button"
-                    >
+                    <button type="button" class="btn btn-outline-primary" (click)="isCollapsed = !isCollapsed"
+                        [attr.aria-expanded]="!isCollapsed" aria-controls="collapseExample">
                         Toggle
                     </button>
                 </p>
-                <div [ngbCollapse]="isCollapsed" id="collapseExample">
+                <div id="collapseExample" [ngbCollapse]="isCollapsed">
                     <div class="card">
                         <div class="card-body">
                             You can collapse this card by clicking Toggle
