@@ -108,13 +108,22 @@
     },
     "schematics": {
         "@schematics/angular:component": {
-            "prefix": "app",
-            "styleext": "scss"
+          "style": "scss",
+          "skipTests": true
+        },
+        "@schematics/angular:class": {
+          "skipTests": true
         },
         "@schematics/angular:directive": {
-            "prefix": "app"
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
         }
-    },
+      },
     "cli": {
       "analytics": "0ccfd754-79ab-4bf6-b9ef-ef066366d8c7"
     }
