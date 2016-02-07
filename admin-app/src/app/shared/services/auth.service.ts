@@ -52,9 +52,8 @@ export class AuthService extends BaseService {
   }
 
   get profile(): Profile {
-    return this.user != null ? this.user.profile : { userName: '', role: '', permissions: [] };
+    return this.user != null ? this.user.profile : null;
   }
-
   async signout() {
     await this.manager.signoutRedirect();
   }

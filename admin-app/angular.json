@@ -7,6 +7,7 @@
             "root": "",
             "sourceRoot": "src",
             "projectType": "application",
+            "prefix": "app",
             "architect": {
                 "build": {
                     "builder": "@angular-devkit/build-angular:browser",
@@ -17,8 +18,14 @@
                         "tsConfig": "src/tsconfig.app.json",
                         "polyfills": "src/polyfills.ts",
                         "assets": ["src/assets", "src/favicon.ico"],
-                        "styles": ["node_modules/font-awesome/css/font-awesome.css", "src/styles/app.scss"],
-                        "scripts": ["node_modules/chart.js/dist/Chart.js"],
+                        "styles": ["node_modules/font-awesome/css/font-awesome.css",
+                        "node_modules/primeicons/primeicons.css",
+                        "node_modules/primeng/resources/themes/nova-light/theme.css",
+                        "node_modules/primeng/resources/primeng.min.css",
+                        "node_modules/alertifyjs/build/css/alertify.css",
+                        "node_modules/alertifyjs/build/css/themes/default.css", "src/styles/app.scss"],
+                        "scripts": ["node_modules/chart.js/dist/Chart.js",
+                        "node_modules/alertifyjs/build/alertify.js"],
                         "allowedCommonJsDependencies": ["chart.js"],
                         "aot": false,
                         "vendorChunk": true,
@@ -108,22 +115,22 @@
     },
     "schematics": {
         "@schematics/angular:component": {
-          "style": "scss",
-          "skipTests": true
+            "style": "scss",
+            "skipTests": true
         },
         "@schematics/angular:class": {
-          "skipTests": true
-        },
+            "skipTests": true
+          },
         "@schematics/angular:directive": {
-          "skipTests": true
+            "skipTests": true
         },
         "@schematics/angular:pipe": {
-          "skipTests": true
-        },
-        "@schematics/angular:service": {
-          "skipTests": true
-        }
-      },
+            "skipTests": true
+          },
+          "@schematics/angular:service": {
+            "skipTests": true
+          }
+    },
     "cli": {
       "analytics": "0ccfd754-79ab-4bf6-b9ef-ef066366d8c7"
     }
