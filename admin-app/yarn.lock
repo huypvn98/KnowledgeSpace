@@ -120,12 +120,10 @@
     ora "5.4.1"
     rxjs "7.8.1"
 
-"@angular/animations@17.3.4":
-  version "17.3.4"
-  resolved "https://registry.npmjs.org/@angular/animations/-/animations-17.3.4.tgz"
-  integrity sha512-2nBgXRdTSVPZMueV6ZJjajDRucwJBLxwiVhGafk/nI5MJF0Yss/Jfp2Kfzk5Xw2AqGhz0rd00IyNNUQIzO2mlw==
-  dependencies:
-    tslib "^2.3.0"
+"@angular/animations@^9.1.13", "@angular/animations@17.3.4":
+  version "9.1.13"
+  resolved "https://registry.npmjs.org/@angular/animations/-/animations-9.1.13.tgz"
+  integrity sha512-ane1eeQmsP7fcAiLgRhle7YIDgE88WDMMvzqJYhSxwLzXNF/hwqNeskmNcjo8bLt9h/yTIjrCQbycLCHJfU8UQ==
 
 "@angular/cdk@^9.2.0", "@angular/cdk@>=14.0.0":
   version "9.2.4"
@@ -191,7 +189,7 @@
   resolved "https://registry.npmjs.org/@angular/compiler/-/compiler-9.0.0.tgz"
   integrity sha512-ctjwuntPfZZT2mNj2NDIVu51t9cvbhl/16epc5xEwyzyDt76pX9UgwvY+MbXrf/C/FWwdtmNtfP698BKI+9leQ==
 
-"@angular/core@^15.0.0", "@angular/core@^7.0.0 || ^8.0.0 || ^9.0.0", "@angular/core@^9.0.0", "@angular/core@^9.0.0 || ^10.0.0-0", "@angular/core@>=13.0.0", "@angular/core@>=14.0.0", "@angular/core@>=7.0.0", "@angular/core@17.3.4", "@angular/core@9.0.2":
+"@angular/core@^15.0.0", "@angular/core@^7.0.0 || ^8.0.0 || ^9.0.0", "@angular/core@^9.0.0", "@angular/core@^9.0.0 || ^10.0.0-0", "@angular/core@>=13.0.0", "@angular/core@>=14.0.0", "@angular/core@>=7.0.0", "@angular/core@17.3.4", "@angular/core@9.0.2", "@angular/core@9.1.13":
   version "9.0.2"
   resolved "https://registry.npmjs.org/@angular/core/-/core-9.0.2.tgz"
   integrity sha512-ccVPR6RZo2s9O9phO0TJ60QZ0WA7qfUMzo0xnpBW0XGcbTzLEn9upvs+0PX64f9UpnHz/MQo0wsqYvTLuoz7Yw==
