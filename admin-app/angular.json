@@ -26,7 +26,7 @@
                         "node_modules/alertifyjs/build/css/themes/default.css", "src/styles/app.scss"],
                         "scripts": ["node_modules/chart.js/dist/Chart.js",
                         "node_modules/alertifyjs/build/alertify.js"],
-                        "allowedCommonJsDependencies": ["chart.js"],
+                        // "allowedCommonJsDependencies": ["chart.js"],
                         "aot": false,
                         "vendorChunk": true,
                         "extractLicenses": false,
@@ -65,18 +65,18 @@
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
-                      "buildTarget": "test-ng7:build"
+                      "browserTarget": "test-ng7:build"
                     },
                     "configurations": {
                         "production": {
-                          "buildTarget": "test-ng7:build:production"
+                          "browserTarget": "test-ng7:build:production"
                         }
                     }
                 },
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",
                     "options": {
-                      "buildTarget": "test-ng7:build"
+                      "browserTarget": "test-ng7:build"
                     }
                 },
                 "test": {
