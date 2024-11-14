@@ -28,14 +28,14 @@ function formatRelativeTime(fromDate) {
     }
 
     else if (elapsed < msPerMonth) {
-        return 'khoảng ' + Math.round(elapsed / msPerDay) + ' ngày trước';
+        return 'approximately ' + Math.round(elapsed / msPerDay) + ' ngày trước';
     }
 
     else if (elapsed < msPerYear) {
-        return 'khoảng ' + Math.round(elapsed / msPerMonth) + ' tháng trước';
+        return 'approximately ' + Math.round(elapsed / msPerMonth) + ' tháng trước';
     }
 
     else {
-        return 'khoảng ' + Math.round(elapsed / msPerYear) + ' năm trước';
+        return 'approximately ' + Math.round(elapsed / msPerYear) + ' năm trước';
     }
 }

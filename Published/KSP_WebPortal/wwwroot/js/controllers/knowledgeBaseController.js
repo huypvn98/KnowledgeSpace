@@ -23,30 +23,10 @@
                     ownerName: $('#hid_current_login_name').val()
                 });
                 $("#txt_new_comment_content").val('');
-                $("#txt_captcha").val('');
-
                 $('#comment_list').prepend(newComment);
                 var numberOfComments = parseInt($('#hid_number_comments').val()) + 1;
                 $('#hid_number_comments').val(numberOfComments);
                 $('#comments-title').text('(' + numberOfComments + ') bình luận');
-
-                $('#message-result').removeClass('alert-danger')
-                    .addClass('alert-success')
-                    .html('Bình luận thành công')
-                    .show();
-            }).error(function (err) {
-                $('#message-result').html('');
-                if (err.status === 400 && err.responseText) {
-                    var errMsgs = JSON.parse(err.responseText);
-                    for (field in errMsgs) {
-                        $('#message-result').append(errMsgs[field] + '<br>');
-                    }
-                    $('#message-result')
-                        .removeClass('alert-success"')
-                        .addClass('alert-danger')
-                        .show();
-                    resetCaptchaImage('img-captcha');
-                }
             });
         });
 
@@ -80,7 +60,6 @@
                     //Reset reply comment
                     $("#txt_reply_content_" + commentId).val('');
                     $('#reply_comment_' + commentId).html('');
-                    $('#txt_captcha_reply_' + commentId).html('');
 
                     //Prepend new comment to children
                     $('#children_comments_' + commentId).prepend(newComment);
@@ -89,24 +68,6 @@
                     var numberOfComments = parseInt($('#hid_number_comments').val()) + 1;
                     $('#hid_number_comments').val(numberOfComments);
                     $('#comments-title').text('(' + numberOfComments + ') bình luận');
-
-                    $('#message-result-reply-' + commentId).removeClass('alert-danger')
-                        .addClass('alert-success')
-                        .html('Bình luận thành công')
-                        .show();
-                }).error(function (err) {
-                    $('#message-result-reply-' + commentId).html('');
-                    if (err.status === 400 && err.responseText) {
-                        var errMsgs = JSON.parse(err.responseText);
-                        for (field in errMsgs) {
-                            $('#message-result-reply-' + commentId).append(errMsgs[field] + '<br>');
-                        }
-                        $('#message-result-reply-' + commentId)
-                            .removeClass('alert-success"')
-                            .addClass('alert-danger')
-                            .show();
-                        resetCaptchaImage('img-captcha-reply-' + commentId);
-                    }
                 });
             });
         });
@@ -129,66 +90,21 @@
                 .done(function () {
                     $('#reportModal').modal('hide');
                     $('#txt_report_content').val('');
-                }).error(function (err) {
-                    $('#message-result-report').html('');
-                    if (err.status === 400 && err.responseText) {
-                        var errMsgs = JSON.parse(err.responseText);
-                        for (field in errMsgs) {
-                            $('#message-result-report').append(errMsgs[field] + '<br>');
-                        }
-                        $('#message-result-report')
-                            .removeClass('alert-success"')
-                            .addClass('alert-danger')
-                            .show();
-                        resetCaptchaImage('img-captcha-report');
-                    }
                 });
-        });
-
-        $("#img-captcha").click(function () {
-            resetCaptchaImage('img-captcha');
-        });
-        $('body').on('click', '.img-captcha', function (e) {
-            var id = $(this).data('id');
-            resetCaptchaImage('img-captcha-reply-' + id);
-        });
-
-        $('body').on('click', '#img-captcha-report', function (e) {
-            resetCaptchaImage('img-captcha-report');
-        });
-
-        $('body').on('click', '#comment-pagination', function (e) {
-            e.preventDefault();
-            var kbId = parseInt($('#hid_knowledge_base_id').val());
-            var nextPageIndex = parseInt($(this).data('page-index')) + 1;
-            $(this).data('page-index', nextPageIndex);
-            loadComments(kbId, nextPageIndex);
-        });
-
-        $('body').on('click', '.replied-comment-pagination', function (e) {
-            e.preventDefault();
-            var kbId = parseInt($('#hid_knowledge_base_id').val());
-
-            var commentId = parseInt($(this).data('id'));
-            var nextPageIndex = parseInt($(this).data('page-index')) + 1;
-            $(this).data('page-index', nextPageIndex);
-            loadRepliedComments(kbId, commentId, nextPageIndex);
         });
     }
 
-    function loadComments(id, pageIndex) {
-        if (pageIndex === undefined) pageIndex = 1;
-        $.get('/knowledgeBase/GetCommentsByKnowledgeBaseId?knowledgeBaseId=' + id + '&pageIndex=' + pageIndex)
-            .done(function (response, statusText, xhr) {
+    function loadComments(id) {
+        $.get('/knowledgeBase/GetCommentByKnowledgeBaseId?knowledgeBaseId=' + id).done(function (response, statusText, xhr) {
             if (xhr.status === 200) {
                 var template = $('#tmpl_comments').html();
                 var childrenTemplate = $('#tmpl_children_comments').html();
-                if (response && response.items) {
+                if (response) {
                     var html = '';
-                    $.each(response.items, function (index, item) {
+                    $.each(response, function (index, item) {
                         var childrenHtml = '';
-                        if (item.children && item.children.items) {
-                            $.each(item.children.items, function (childIndex, childItem) {
+                        if (item.children.length > 0) {
+                            $.each(item.children, function (childIndex, childItem) {
                                 childrenHtml += Mustache.render(childrenTemplate, {
                                     id: childItem.id,
                                     content: childItem.content,
@@ -197,13 +113,6 @@
                                 });
                             });
                         }
-                        if (response.pageIndex < response.pageCount) {
-                            childrenHtml += '<a href="#" class="replied-comment-pagination" id="replied-comment-pagination-' + item.id + '" data-page-index="1" data-id="' + item.id + '">Xem thêm bình luận</a>';
-                        }
-                        else {
-                            childrenHtml += '<a href="#" class="replied-comment-pagination" id="replied-comment-pagination-' + item.id + '" data-page-index="1" data-id="' + item.id + '" style="display:none">Xem thêm bình luận</a>';
-                        }
-
                         html += Mustache.render(template, {
                             childrenHtml: childrenHtml,
                             id: item.id,
@@ -212,49 +121,9 @@
                             ownerName: item.ownerName
                         });
                     });
-                    $('#comment_list').append(html);
-                    if (response.pageIndex < response.pageCount) {
-                        $('#comment-pagination').show();
-                    }
-                    else {
-                        $('#comment-pagination').hide();
-                    }
+                    $('#comment_list').html(html);
                 }
             }
         });
-    }
-
-    function loadRepliedComments(id, rootCommentId, pageIndex) {
-        if (pageIndex === undefined) pageIndex = 1;
-        $.get('/knowledgeBase/GetRepliedCommentsByKnowledgeBaseId?knowledgeBaseId=' + id + '&rootcommentId=' + rootCommentId
-            + '&pageIndex=' + pageIndex)
-            .done(function (response, statusText, xhr) {
-                if (xhr.status === 200) {
-                    var template = $('#tmpl_children_comments').html();
-                    if (response && response.items) {
-                        var html = '';
-                        $.each(response.items, function (index, item) {
-                            html += Mustache.render(template, {
-                                id: item.id,
-                                content: item.content,
-                                createDate: formatRelativeTime(item.createDate),
-                                ownerName: item.ownerName
-                            });
-                        });
-                        $('#children_comments_' + rootCommentId).append(html);
-                        if (response.pageIndex < response.pageCount) {
-                            $('#replied-comment-pagination-' + rootCommentId).show();
-                        }
-                        else {
-                            $('#replied-comment-pagination-' + rootCommentId).hide();
-                        }
-                    }
-                }
-            });
-    }
-
-    function resetCaptchaImage(id) {
-        d = new Date();
-        $("#" + id).attr("src", "/get-captcha-image?" + d.getTime());
     }
 };
