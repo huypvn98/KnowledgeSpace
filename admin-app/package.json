@@ -10,7 +10,9 @@
     "test": "ng test",
     "test-ci": "TEST_CI=true ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "build:prod": "set NODE_OPTIONS=--openssl-legacy-provider && ng build --prod"
+
   },
   "private": true,
   "dependencies": {
