@@ -7,6 +7,7 @@ using KnowledgeSpace.BackendServer.Data.Entities;
 using KnowledgeSpace.BackendServer.Extensions;
 using KnowledgeSpace.BackendServer.IdentityServer;
 using KnowledgeSpace.BackendServer.Services;
+using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Systems;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -38,6 +39,7 @@ namespace KnowledgeSpace.BackendServer
         {
             //var secret = new IdentityServer4.Models.Secret("secret".Sha256());
             //1. Setup entity framework
+            //services.AddDbContextPool<ApplicationDbContext>(options =>
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
@@ -126,6 +128,10 @@ namespace KnowledgeSpace.BackendServer
             services.AddTransient<ISequenceService, SequenceService>();
 
             services.AddTransient<IStorageService, FileStorageService>();
+            //services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
+            //services.AddTransient<IViewRenderService, ViewRenderService>();
+            //services.AddTransient<ICacheService, DistributedCacheService>();
+            //services.AddTransient<IOneSignalService, OneSignalService>();
 
             services.AddSwaggerGen(c =>
             {
@@ -138,6 +144,7 @@ namespace KnowledgeSpace.BackendServer
                     {
                         Implicit = new OpenApiOAuthFlow
                         {
+                            //AuthorizationUrl = new Uri(Configuration["AuthorityUrl"] + "/connect/authorize"),
                             AuthorizationUrl = new Uri("https://localhost:5000/connect/authorize"),
                             Scopes = new Dictionary<string, string> { { "api.knowledgespace", "KnowledgeSpace API" } }
                         },
@@ -154,6 +161,13 @@ namespace KnowledgeSpace.BackendServer
                     }
                 });
             });
+
+            //services.AddDistributedSqlServerCache(o =>
+            //{
+            //    o.ConnectionString = Configuration.GetConnectionString("DefaultConnection");
+            //    o.SchemaName = "dbo";
+            //    o.TableName = "CacheTable";
+            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -163,8 +177,28 @@ namespace KnowledgeSpace.BackendServer
             {
                 app.UseDeveloperExceptionPage();
             }
+            //else
+            //{
+            //    app.UseHsts(hsts => hsts.MaxAge(365).IncludeSubdomains().Preload());
 
+            //    app.UseXContentTypeOptions();
+            //    app.UseReferrerPolicy(opts => opts.NoReferrer());
+            //    app.UseXXssProtection(options => options.EnabledWithBlockMode());
+            //    app.UseXfo(options => options.Deny());
+            //}
             app.UseErrorWrapping();
+
+            //app.UseCsp(opts => opts
+            //        .BlockAllMixedContent()
+            //        .StyleSources(s => s.Self())
+            //        .StyleSources(s => s.UnsafeInline())
+            //        .FontSources(s => s.Self())
+            //        .FormActions(s => s.Self())
+            //        .FrameAncestors(s => s.Self())
+            //        .ImageSources(s => s.Self())
+            //        .ScriptSources(s => s.Self())
+            //    );
+
             app.UseStaticFiles();
 
             app.UseIdentityServer();

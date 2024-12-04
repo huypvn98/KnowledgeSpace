@@ -51,6 +51,7 @@ export class AuthService extends BaseService {
   get name(): string {
     return this.user != null ? this.user.profile.name : '';
   }
+
   get profile(): Profile {
     return this.user != null ? this.user.profile : null;
   }
