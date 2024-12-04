@@ -1,10 +1,12 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using KnowledgeSpace.BackendServer.Authorization;
 using KnowledgeSpace.BackendServer.Constants;
 using KnowledgeSpace.BackendServer.Data.Entities;
 using KnowledgeSpace.BackendServer.Extensions;
 using KnowledgeSpace.BackendServer.Helpers;
+using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Contents;
 using Microsoft.AspNetCore.Authorization;
@@ -102,6 +104,25 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var result = await _context.SaveChangesAsync();
             if (result > 0)
             {
+                //await _cacheService.RemoveAsync(CacheConstants.RecentComments);
+
+                //Send mail
+                if (comment.ReplyId.HasValue)
+                {
+                    var repliedComment = await _context.Comments.FindAsync(comment.ReplyId.Value);
+                    var repledUser = await _context.Users.FindAsync(repliedComment.OwnerUserId);
+                    var emailModel = new RepliedCommentVm()
+                    {
+                        CommentContent = request.Content,
+                        KnowledeBaseId = knowledgeBaseId,
+                        KnowledgeBaseSeoAlias = knowledgeBase.SeoAlias,
+                        KnowledgeBaseTitle = knowledgeBase.Title,
+                        RepliedName = repledUser.FirstName + " " + repledUser.LastName
+                    };
+                    //https://github.com/leemunroe/responsive-html-email-template
+                    var htmlContent = await _viewRenderService.RenderToStringAsync("_RepliedCommentEmail", emailModel);
+                    await _emailSender.SendEmailAsync(repledUser.Email, "Có người đang trả lời bạn", htmlContent);
+                }
                 return CreatedAtAction(nameof(GetCommentDetail), new { id = knowledgeBaseId, commentId = comment.Id }, new CommentVm()
                 {
                     Id = comment.Id
@@ -156,6 +177,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var result = await _context.SaveChangesAsync();
             if (result > 0)
             {
+                //Delete cache
+                //await _cacheService.RemoveAsync(CacheConstants.RecentComments);
                 var commentVm = new CommentVm()
                 {
                     Id = comment.Id,
@@ -174,62 +197,135 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetRecentComments(int take)
         {
-            var query = from c in _context.Comments
-                        join u in _context.Users
-                            on c.OwnerUserId equals u.Id
-                        join k in _context.KnowledgeBases
-                        on c.KnowledgeBaseId equals k.Id
-                        orderby c.CreateDate descending
-                        select new { c, u, k };
+            //var cachedData = await _cacheService.GetAsync<List<CommentVm>>(CacheConstants.RecentComments);
+            //if (cachedData == null)
+            //{
+                var query = from c in _context.Comments
+                            join u in _context.Users
+                                on c.OwnerUserId equals u.Id
+                            join k in _context.KnowledgeBases
+                            on c.KnowledgeBaseId equals k.Id
+                            orderby c.CreateDate descending
+                            select new { c, u, k };
 
-            var comments = await query.Take(take).Select(x => new CommentVm()
-            {
-                Id = x.c.Id,
-                CreateDate = x.c.CreateDate,
-                KnowledgeBaseId = x.c.KnowledgeBaseId,
-                OwnerUserId = x.c.OwnerUserId,
-                KnowledgeBaseTitle = x.k.Title,
-                OwnerName = x.u.FirstName + " " + x.u.LastName,
-                KnowledgeBaseSeoAlias = x.k.SeoAlias
-            }).ToListAsync();
+                var comments = await query.Take(take).Select(x => new CommentVm()
+                {
+                    Id = x.c.Id,
+                    CreateDate = x.c.CreateDate,
+                    KnowledgeBaseId = x.c.KnowledgeBaseId,
+                    OwnerUserId = x.c.OwnerUserId,
+                    KnowledgeBaseTitle = x.k.Title,
+                    OwnerName = x.u.FirstName + " " + x.u.LastName,
+                    KnowledgeBaseSeoAlias = x.k.SeoAlias
+                }).ToListAsync();
+
+            //    await _cacheService.SetAsync(CacheConstants.RecentComments, comments);
+            //    cachedData = comments;
+            //}
 
             return Ok(comments);
         }
 
-        //[HttpGet("{knowledgeBaseId}/comments/tree")]
-        //[AllowAnonymous]
-        //public async Task<IActionResult> GetCommentTreeByKnowledgeBaseId(int knowledgeBaseId)
-        //{
-        //    var query = from c in _context.Comments
-        //                join u in _context.Users
-        //                    on c.OwnerUserId equals u.Id
-        //                where c.KnowledgeBaseId == knowledgeBaseId
-        //                select new { c, u };
+        [HttpGet("{knowledgeBaseId}/comments/tree")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCommentTreeByKnowledgeBaseId(int knowledgeBaseId, int pageIndex, int pageSize)
+        {
+            var query = from c in _context.Comments
+                        join u in _context.Users
+                            on c.OwnerUserId equals u.Id
+                        where c.KnowledgeBaseId == knowledgeBaseId
+                        where c.ReplyId == null
+                        select new { c, u };
 
-        //    var flatComments = await query.Select(x => new CommentVm()
-        //    {
-        //        Id = x.c.Id,
-        //        Content = x.c.Content,
-        //        CreateDate = x.c.CreateDate,
-        //        KnowledgeBaseId = x.c.KnowledgeBaseId,
-        //        OwnerUserId = x.c.OwnerUserId,
-        //        OwnerName = x.u.FirstName + " " + x.u.LastName,
-        //        ReplyId = x.c.ReplyId
-        //    }).ToListAsync();
+            var totalRecords = await query.CountAsync();
+            var rootComments = await query.OrderByDescending(x => x.c.CreateDate)
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new CommentVm()
+                {
+                    Id = x.c.Id,
+                    CreateDate = x.c.CreateDate,
+                    KnowledgeBaseId = x.c.KnowledgeBaseId,
+                    OwnerUserId = x.c.OwnerUserId,
+                    OwnerName = x.u.FirstName + " " + x.u.LastName,
+                })
+                .ToListAsync();
 
-        //    var lookup = flatComments.ToLookup(c => c.ReplyId);
-        //    var rootCategories = flatComments.Where(x => x.ReplyId == null);
+            foreach (var comment in rootComments)//only loop through root categories
+            {
+                // you can skip the check if you want an empty list instead of null
+                // when there is no children
+                var repliedQuery = from c in _context.Comments
+                                   join u in _context.Users
+                                       on c.OwnerUserId equals u.Id
+                                   where c.KnowledgeBaseId == knowledgeBaseId
+                                   where c.ReplyId == comment.Id
+                                   select new { c, u };
 
-        //    foreach (var c in rootCategories)//only loop through root categories
-        //    {
-        //        // you can skip the check if you want an empty list instead of null
-        //        // when there is no children
-        //        if (lookup.Contains(c.Id))
-        //            c.Children = lookup[c.Id].ToList();
-        //    }
+                var totalRepliedCommentsRecords = await repliedQuery.CountAsync();
+                var repliedComments = await repliedQuery.OrderByDescending(x => x.c.CreateDate)
+                    .Take(pageSize)
+                    .Select(x => new CommentVm()
+                    {
+                        Id = x.c.Id,
+                        CreateDate = x.c.CreateDate,
+                        KnowledgeBaseId = x.c.KnowledgeBaseId,
+                        OwnerUserId = x.c.OwnerUserId,
+                        OwnerName = x.u.FirstName + " " + x.u.LastName,
+                    })
+                    .ToListAsync();
 
-        //    return Ok(rootCategories);
-        //}
+                comment.Children = new Pagination<CommentVm>()
+                {
+                    PageIndex = 1,
+                    PageSize = 10,
+                    Items = repliedComments,
+                    TotalRecords = totalRepliedCommentsRecords
+                };
+            }
+
+            return Ok(new Pagination<CommentVm>
+            {
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                Items = rootComments,
+                TotalRecords = totalRecords
+            });
+        }
+
+        [HttpGet("{knowledgeBaseId}/comments/{rootCommentId}/replied")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetRepliedCommentsPaging(int knowledgeBaseId, int rootCommentId, int pageIndex, int pageSize)
+        {
+            var query = from c in _context.Comments
+                        join u in _context.Users
+                            on c.OwnerUserId equals u.Id
+                        where c.KnowledgeBaseId == knowledgeBaseId
+                        where c.ReplyId == rootCommentId
+                        select new { c, u };
+
+            var totalRecords = await query.CountAsync();
+            var comments = await query.OrderByDescending(x => x.c.CreateDate)
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new CommentVm()
+                {
+                    Id = x.c.Id,
+                    CreateDate = x.c.CreateDate,
+                    KnowledgeBaseId = x.c.KnowledgeBaseId,
+                    OwnerUserId = x.c.OwnerUserId,
+                    OwnerName = x.u.FirstName + " " + x.u.LastName,
+                })
+                .ToListAsync();
+
+            return Ok(new Pagination<CommentVm>
+            {
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                Items = comments,
+                TotalRecords = totalRecords
+            });
+        }
 
         #endregion Comments
     }
