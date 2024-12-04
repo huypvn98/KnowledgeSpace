@@ -21,9 +21,9 @@ namespace KnowledgeSpace.WebPortal
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    //webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
+                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
                     webBuilder.UseStartup<Startup>();
-                    //webBuilder.UseIISIntegration();
+                    webBuilder.UseIISIntegration();
                 });
     }
 }
